@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: sample_postgres
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  localstack:
+    image: localstack/localstack:3
+    container_name: sample_localstack
+    environment:
+      SERVICES: s3
+      DEBUG: 0
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./infra/s3/localstack.conf:/etc/localstack/conf.d/localstack.conf:ro
+
+  backend:
+    build:
+      context: ./backend
+    container_name: sample_backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://app:app@postgres:5432/app_db
+      S3_ENDPOINT_URL: http://localstack:4566
+      S3_BUCKET: sample-bucket
+      S3_ACCESS_KEY: test
+      S3_SECRET_KEY: test
+      S3_REGION: us-east-1
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - localstack
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: sample_frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
