@@ -49,3 +49,4 @@ jobs:
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO_FRONTEND }}:latest
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO_FRONTEND }}:${{ github.sha }}
+            
